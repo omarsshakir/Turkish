@@ -12,7 +12,7 @@ guide, an Arabic translation, a Kurdish Sorani translation — and a 🔊 button
 
 ```bash
 npm install
-npm run dev        # http://localhost:5180
+npm run dev        # http://localhost:5173
 ```
 
 | Command | What it does |
