@@ -13,10 +13,10 @@
  *   node scripts/journey-audit.mjs
  */
 import puppeteer from 'puppeteer-core';
+import { findChrome } from './lib/chrome.mjs';
 
 const BASE = process.env.SMOKE_URL ?? 'http://localhost:5173';
-const CHROME = process.env.CHROME_PATH
-  ?? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+const CHROME = findChrome();
 
 const failures = [];
 let step = 0;

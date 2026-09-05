@@ -11,10 +11,10 @@
  * Run with: npm run smoke   (dev server must already be running)
  */
 import puppeteer from 'puppeteer-core';
+import { findChrome } from './lib/chrome.mjs';
 
 const BASE = process.env.SMOKE_URL ?? 'http://localhost:5173';
-const CHROME = process.env.CHROME_PATH
-  ?? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+const CHROME = findChrome();
 
 const failures = [];
 const notes = [];

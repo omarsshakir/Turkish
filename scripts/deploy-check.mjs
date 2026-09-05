@@ -22,13 +22,13 @@ import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import puppeteer from 'puppeteer-core';
+import { findChrome } from './lib/chrome.mjs';
 
 const ROOT = process.cwd();
 const DIST = path.join(ROOT, 'dist');
 const BASE_PATH = process.env.BASE_PATH ?? '/turkishpath';
 const PORT = Number(process.env.PORT ?? 4178);
-const CHROME = process.env.CHROME_PATH
-  ?? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+const CHROME = findChrome();
 
 const TYPES = {
   '.html': 'text/html; charset=utf-8',

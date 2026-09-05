@@ -1,0 +1,114 @@
+# Continuous integration.
+#
+# Runs on every push and pull request. The deploy workflow gates publication;
+# this gates the code itself, and runs the browser suites that deploy skips.
+#
+# Split into two jobs on purpose: `checks` is pure Node and finishes in under a
+# minute, so a broken import or a bad Turkish example fails fast. `browser`
+# needs Chrome and a dev server and takes longer, so it runs alongside rather
+# than in front of it.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  checks:
+    name: Content, types and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      # Case-sensitive imports and lockfile drift break on Linux and nowhere
+      # else, so this runs before anything that would waste time failing later.
+      - name: Portability (Linux case sensitivity, lockfile)
+        run: node scripts/portability-check.mjs
+
+      - name: Content validation
+        run: npm run validate
+
+      - name: Turkish vowel harmony
+        run: npm run harmony
+
+      - name: Validator protections still bite
+        run: npm run protect
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+      - name: Content report
+        run: npm run report
+
+  browser:
+    name: Browser suites
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Node 22 because puppeteer-core 25 declares `engines.node >= 22.12`.
+      # On 20 it installs with a warning and can fail when launching.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      # ubuntu-latest ships Chrome at /usr/bin/google-chrome, which
+      # scripts/lib/chrome.mjs finds without configuration. Asserting it here
+      # turns a missing browser into a clear message instead of a stack trace.
+      - name: Locate Chrome
+        run: node -e "import('./scripts/lib/chrome.mjs').then(m => console.log(m.findChrome()))"
+
+      # A plain poll rather than `npx wait-on`: no package fetched at run time,
+      # and the failure message says what it was waiting for.
+      #
+      # `nohup` detaches the server from this step's shell so it survives into
+      # the following steps, and the log is kept for the failure case.
+      - name: Start dev server
+        run: |
+          nohup npm run dev > /tmp/dev.log 2>&1 &
+          up=0
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:5173/ > /dev/null; then
+              echo "dev server up after ${i}s"
+              up=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$up" -ne 1 ]; then
+            echo "dev server did not start within 60s. Log:"
+            cat /tmp/dev.log
+            exit 1
+          fi
+
+      - name: Smoke tests
+        run: npm run smoke
+
+      - name: Accessibility and QA
+        run: npm run qa
+
+      - name: Route audit
+        run: npm run routes
+
+      - name: Learner journey
+        run: npm run journey
+
+      - name: Responsive and RTL
+        run: npm run responsive
+
+      # The built artifact, served the way GitHub Pages serves it.
+      - name: Static deployment check
+        run: |
+          VITE_BASE=/${{ github.event.repository.name }}/ npm run build
+          BASE_PATH=/${{ github.event.repository.name }} npm run deploy-check

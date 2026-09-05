@@ -1,8 +1,8 @@
 import puppeteer from 'puppeteer-core';
+import { findChrome } from './lib/chrome.mjs';
 import { mkdirSync } from 'node:fs';
 
-const CHROME = process.env.CHROME_PATH
-  ?? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+const CHROME = findChrome();
 const BASE = process.env.SMOKE_URL ?? 'http://localhost:5173';
 const OUT = process.env.SHOT_DIR ?? 'screenshots';
 mkdirSync(OUT, { recursive: true });

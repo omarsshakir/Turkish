@@ -12,10 +12,10 @@
  *   node scripts/route-audit.mjs
  */
 import puppeteer from 'puppeteer-core';
+import { findChrome } from './lib/chrome.mjs';
 
 const BASE = process.env.SMOKE_URL ?? 'http://localhost:5173';
-const CHROME = process.env.CHROME_PATH
-  ?? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+const CHROME = findChrome();
 
 /* Every route in src/App.tsx, plus representative parameterised ones. */
 const ROUTES = [
