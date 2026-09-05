@@ -1,0 +1,73 @@
+# Build TurkishPath and publish it to GitHub Pages.
+#
+# Pages cannot serve this repository directly: the committed index.html loads
+# /src/main.tsx, which is TypeScript. A browser asked to run it does nothing,
+# which is why serving the source produced a blank page. The site has to be
+# built first, and this workflow is what does that.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Lets you re-run a deploy from the Actions tab without pushing.
+  workflow_dispatch:
+
+# Pages deployment needs these; the default token is read-only.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time. Queue rather than cancel, so a push during a deploy
+# still ships instead of being dropped.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # The curriculum is hand-authored data, so a typo is a content bug rather
+      # than a type error. Both gates run before anything is published.
+      - name: Validate content
+        run: npm run validate
+
+      - name: Check Turkish vowel harmony
+        run: npm run harmony
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      # VITE_BASE must match the repository name, because a project site is
+      # served from https://<user>.github.io/<repo>/ and asset URLs need that
+      # prefix. It also feeds the router's basename.
+      - name: Build
+        run: npm run build
+        env:
+          VITE_BASE: /${{ github.event.repository.name }}/
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
