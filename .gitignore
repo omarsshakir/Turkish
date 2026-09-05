@@ -1,0 +1,9 @@
+node_modules/
+dist/
+screenshots/
+*.local
+.DS_Store
+.vite/
+
+*.tsbuildinfo
+shots/

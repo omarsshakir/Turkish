@@ -1,0 +1,45 @@
+{
+  "name": "turkishpath",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "TurkishPath — Türkçe Öğren. A Turkish language learning platform for Arabic and Kurdish (Sorani) speakers, A1 to C1+.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --pretty false",
+    "validate": "node scripts/validate-content.mjs",
+    "smoke": "node scripts/smoke-test.mjs",
+    "qa": "node scripts/qa-audit.mjs",
+    "report": "node scripts/content-report.mjs",
+    "protect": "node scripts/protection-test.mjs",
+    "gaps": "node scripts/gap-audit.mjs",
+    "routes": "node scripts/route-audit.mjs",
+    "journey": "node scripts/journey-audit.mjs",
+    "responsive": "node scripts/responsive-audit.mjs",
+    "harmony": "node scripts/harmony-check.mjs",
+    "deploy-check": "node scripts/deploy-check.mjs",
+    "bundle": "node scripts/bundle-audit.mjs",
+    "audit": "npm run validate && npm run harmony && npm run protect && npm run smoke && npm run qa && npm run routes && npm run journey && npm run responsive"
+  },
+  "dependencies": {
+    "lucide-react": "^0.446.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.1",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.2",
+    "autoprefixer": "^10.4.20",
+    "esbuild": "^0.28.2",
+    "postcss": "^8.4.47",
+    "puppeteer-core": "^25.9.0",
+    "tailwindcss": "^3.4.13",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.8"
+  }
+}

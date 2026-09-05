@@ -1,0 +1,320 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==================================================================== */
+/*  TurkishPath — design system                                         */
+/*                                                                      */
+/*  Semantic tokens live here as CSS variables so light and dark are    */
+/*  designed independently rather than one being an inversion of the    */
+/*  other. Components reference the token, never a raw colour.          */
+/* ==================================================================== */
+
+@layer base {
+  :root {
+    --sidebar-w: 272px;
+    color-scheme: light;
+
+    /* --- surfaces ------------------------------------------------- */
+    --bg: 251 249 246;              /* warm paper                     */
+    --surface: 255 255 255;         /* card                           */
+    --surface-elevated: 255 255 255;/* modal, popover                 */
+    --surface-sunken: 244 240 234;  /* wells, inactive tracks         */
+    --rail: 15 23 37;               /* nav rail — midnight in BOTH themes */
+
+    /* --- text ----------------------------------------------------- */
+    --text-primary: 15 23 37;
+    --text-secondary: 87 90 88;
+    --text-muted: 160 152 137;
+    --text-on-rail: 244 240 234;
+
+    /* --- lines ---------------------------------------------------- */
+    --border: 229 222 210;
+    --border-strong: 203 194 178;
+    --hairline: 192 143 63;         /* brass editorial rule           */
+
+    /* --- meaning -------------------------------------------------- */
+    --accent: 31 103 104;           /* interactive (turquoise)        */
+    --accent-soft: 238 247 246;
+    --attention: 185 59 40;         /* rationed red                   */
+    --success: 22 101 76;
+    --warning: 161 98 7;
+    --danger: 159 39 30;
+  }
+
+  html.dark {
+    color-scheme: dark;
+
+    --bg: 15 23 37;                 /* midnight                       */
+    --surface: 26 33 48;
+    --surface-elevated: 42 50 66;
+    --surface-sunken: 11 18 30;
+    --rail: 11 18 30;
+
+    /* Warm-tinted text on cool ground — the reason dark mode here
+       feels like lamplight rather than a terminal. */
+    --text-primary: 244 240 234;
+    --text-secondary: 176 168 155;
+    --text-muted: 120 115 106;
+    --text-on-rail: 244 240 234;
+
+    --border: 42 50 66;
+    --border-strong: 63 69 83;
+    --hairline: 160 115 52;
+
+    --accent: 116 188 185;
+    --accent-soft: 10 34 35;
+    --attention: 224 122 102;
+    --success: 92 176 144;
+    --warning: 208 168 87;
+    --danger: 237 166 152;
+  }
+
+  * { -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background-color: rgb(var(--bg));
+    color: rgb(var(--text-primary));
+    @apply font-sans antialiased;
+    margin: 0;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'cv05', 'cv11', 'ss01';
+  }
+
+  /* Fraunces is a variable face; keep the "wonk" axis off so headings
+     stay academic rather than whimsical, and soften the terminals. */
+  h1, h2, h3, .font-display {
+    font-variation-settings: 'SOFT' 20, 'WONK' 0, 'opsz' 40;
+  }
+
+  /* ---- Arabic / Kurdish Sorani -------------------------------------
+     Both are right-to-left and both need more leading than Latin. They
+     are isolated so a Turkish word inside a translation cannot drag the
+     surrounding text into the wrong visual order. */
+  [dir='rtl'], .rtl { direction: rtl; text-align: right; }
+  .ar-text, .ku-text {
+    @apply font-arabic;
+    direction: rtl;
+    unicode-bidi: isolate;
+    line-height: 1.95;
+    /* Arabic script sits optically smaller than Latin at the same em. */
+    font-size: 1.04em;
+  }
+
+  ::selection { background: rgb(var(--accent) / .18); color: rgb(var(--text-primary)); }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--accent));
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--border-strong) / .8);
+    @apply rounded-full border-2 border-solid border-transparent bg-clip-content;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgb(var(--text-muted)); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+
+  /* ---------------- typography scale ---------------- *
+   * Eight steps, no more. Every heading in the app picks one of these
+   * rather than inventing a size/weight pair. */
+
+  .t-display {
+    @apply font-display font-semibold tracking-tightest;
+    font-size: clamp(2rem, 1.3rem + 2.8vw, 3.25rem);
+    line-height: 1.04;
+  }
+  .t-h1 { @apply font-display text-3xl font-semibold tracking-tight sm:text-[2.1rem]; line-height: 1.12; }
+  .t-h2 { @apply font-display text-xl font-semibold tracking-tight sm:text-2xl; line-height: 1.2; }
+  .t-h3 { @apply font-display text-base font-semibold sm:text-lg; line-height: 1.3; }
+  .t-body { @apply text-[15px] leading-relaxed; color: rgb(var(--text-secondary)); }
+  .t-secondary { @apply text-sm leading-relaxed; color: rgb(var(--text-secondary)); }
+  .t-caption { @apply text-xs leading-normal; color: rgb(var(--text-muted)); }
+  .t-meta {
+    @apply font-mono text-[11px] font-medium uppercase tracking-[.14em];
+    color: rgb(var(--text-muted));
+  }
+
+  /* The editorial eyebrow: brass rule, then small caps. Used once per
+     page section — it is the thing that makes a screen read as a page
+     from a book rather than a panel in a dashboard. */
+  .eyebrow {
+    @apply flex items-center gap-2.5 font-mono text-[11px] font-semibold uppercase tracking-[.16em];
+    color: rgb(var(--text-muted));
+  }
+  .eyebrow::before {
+    content: '';
+    @apply h-px w-6 shrink-0 origin-left;
+    background: rgb(var(--hairline));
+  }
+
+  /* ---------------- surfaces ---------------- */
+
+  .card {
+    background-color: rgb(var(--surface));
+    border: 1px solid rgb(var(--border));
+    @apply rounded-2xl shadow-card;
+  }
+  .card-hover {
+    @apply transition-all duration-200;
+  }
+  .card-hover:hover {
+    @apply -translate-y-0.5 shadow-lift;
+    border-color: rgb(var(--accent) / .45);
+  }
+
+  /* A card that carries a coloured edge instead of a coloured fill —
+     the restraint §3 asks for. */
+  .card-edge { @apply relative overflow-hidden; }
+  .card-edge::before {
+    content: '';
+    @apply absolute inset-x-0 top-0 h-[3px];
+    background: linear-gradient(90deg, rgb(var(--accent)), rgb(var(--accent) / .25));
+  }
+
+  .surface-sunken { background-color: rgb(var(--surface-sunken)); }
+  .surface-elevated { background-color: rgb(var(--surface-elevated)); }
+
+  .hairline { border-color: rgb(var(--border)); }
+
+  /* Brass rule used to close a section heading. */
+  .rule-brass {
+    @apply h-px w-full origin-left;
+    background: linear-gradient(90deg, rgb(var(--hairline) / .55), rgb(var(--hairline) / 0));
+  }
+
+  /* ---------------- buttons ---------------- */
+
+  .btn {
+    @apply inline-flex select-none items-center justify-center gap-2 rounded-xl px-4 py-2.5
+           text-sm font-semibold transition-all duration-150 disabled:pointer-events-none
+           disabled:opacity-50 active:scale-[.985];
+  }
+  .btn-primary {
+    background-color: rgb(var(--accent));
+    @apply btn text-white shadow-sm;
+  }
+  .btn-primary:hover { background-color: rgb(var(--accent) / .88); }
+  html.dark .btn-primary { color: rgb(10 34 35); }
+
+  .btn-secondary {
+    background-color: rgb(var(--surface));
+    border: 1px solid rgb(var(--border-strong));
+    color: rgb(var(--text-primary));
+    @apply btn;
+  }
+  .btn-secondary:hover { border-color: rgb(var(--accent) / .5); background-color: rgb(var(--accent-soft)); }
+
+  .btn-ghost { @apply btn; color: rgb(var(--text-secondary)); }
+  .btn-ghost:hover { background-color: rgb(var(--surface-sunken)); color: rgb(var(--text-primary)); }
+
+  .btn-accent {
+    background-color: rgb(var(--attention));
+    @apply btn text-white shadow-sm;
+  }
+  .btn-accent:hover { background-color: rgb(var(--attention) / .88); }
+
+  .btn-sm { @apply rounded-lg px-3 py-1.5 text-xs; }
+  .btn-lg { @apply rounded-2xl px-6 py-3 text-base; }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold
+           ring-1 ring-inset;
+  }
+
+  /*
+   * Small standalone action links ("Alistirma yap", "Desteyi yonet").
+   *
+   * At 12px text these were 16px tall, under the 24px minimum tap target that
+   * WCAG 2.2 AA asks for. They are not inside a sentence, so the inline
+   * exception does not apply. The padding is transparent, so nothing moves
+   * visually - the target simply becomes large enough to hit on a phone.
+   */
+  .link-action {
+    @apply inline-flex items-center gap-1.5 py-1 text-xs font-semibold
+           text-accent hover:underline;
+    min-height: 24px;
+  }
+
+  /* ---------------- inputs ---------------- */
+
+  .input {
+    background-color: rgb(var(--surface));
+    border: 1px solid rgb(var(--border-strong));
+    color: rgb(var(--text-primary));
+    @apply w-full rounded-xl px-3.5 py-2.5 text-sm transition;
+  }
+  .input::placeholder { color: rgb(var(--text-muted)); }
+  .input:focus {
+    @apply outline-none;
+    border-color: rgb(var(--accent));
+    box-shadow: 0 0 0 4px rgb(var(--accent) / .12);
+  }
+  .label {
+    @apply mb-1.5 block font-mono text-[11px] font-semibold uppercase tracking-[.12em];
+    color: rgb(var(--text-muted));
+  }
+
+  .section-title { @apply t-h3; color: rgb(var(--text-primary)); }
+
+  /* ---------------- Turkish content ---------------- *
+   * Turkish words are set in the display serif. This is the single most
+   * identity-carrying decision in the system: the language being learned
+   * is always visually the most considered thing on screen. */
+
+  .tr-word {
+    @apply font-display font-semibold tracking-tight;
+    color: rgb(var(--text-primary));
+    font-variation-settings: 'SOFT' 20, 'WONK' 0, 'opsz' 28;
+  }
+  .pron {
+    @apply font-mono text-[.8rem] tracking-tight;
+    color: rgb(var(--accent));
+  }
+
+  .surface-muted { background-color: rgb(var(--surface-sunken)); }
+
+  .skeleton {
+    @apply animate-pulse rounded-lg;
+    background-color: rgb(var(--border) / .7);
+  }
+
+  .prose-lesson :where(p) { @apply my-3 leading-relaxed; color: rgb(var(--text-secondary)); }
+  .prose-lesson :where(strong) { @apply font-semibold; color: rgb(var(--text-primary)); }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
+  .grid-auto-fill { grid-template-columns: repeat(auto-fill, minmax(var(--min, 220px), 1fr)); }
+
+  /* Token-backed utilities, so page code can stay semantic. */
+  .bg-surface { background-color: rgb(var(--surface)); }
+  .bg-canvas { background-color: rgb(var(--bg)); }
+  .bg-rail { background-color: rgb(var(--rail)); }
+  .text-primary { color: rgb(var(--text-primary)); }
+  .text-secondary { color: rgb(var(--text-secondary)); }
+  .text-muted { color: rgb(var(--text-muted)); }
+  .text-accent { color: rgb(var(--accent)); }
+  .border-hairline { border-color: rgb(var(--border)); }
+
+  /* Comfortable measure for reading passages — §18. */
+  .measure { max-width: 62ch; }
+}
