@@ -68,6 +68,67 @@ for (const letter of ALPHABET) {
     fail(`Vowel ${letter.id} is missing its vowel properties`);
   }
 }
+/*
+ * Letter examples.
+ *
+ * Two things can quietly go wrong here and neither is a type error: an example
+ * word that does not actually contain its letter, and a translation that has
+ * drifted away from the same word in the vocabulary. The extra examples are
+ * copied from vocabulary entries precisely so no translation is written twice,
+ * and this is what keeps that true after an edit.
+ *
+ * Turkish lowercase is not the built-in one: I lowercases to dotless i, and
+ * dotted I lowercases to i. Using String.prototype.toLowerCase alone would
+ * file every word containing I under the wrong letter.
+ */
+const trLower = (s) => s.replace(/İ/g, 'i').replace(/I/g, 'ı').toLowerCase();
+
+const vocabByTr = new Map();
+for (const item of VOCABULARY) {
+  vocabByTr.set(item.tr, vocabByTr.has(item.tr) ? null : item);  // null marks a homonym
+}
+
+for (const letter of ALPHABET) {
+  const ch = trLower(letter.lower);
+  const more = letter.more ?? [];
+  if (more.length !== 13) {
+    fail(`Letter ${letter.id} has ${more.length} extra examples, expected 13 (15 in total)`);
+  }
+
+  const words = [letter.example, letter.example2, ...more].filter(Boolean);
+  const seen = new Set();
+  for (const word of words) {
+    const low = trLower(word.tr);
+    if (!low.includes(ch)) {
+      fail(`Letter ${letter.id}: example "${word.tr}" does not contain ${letter.lower}`);
+    }
+    if (seen.has(low)) fail(`Letter ${letter.id}: example "${word.tr}" appears twice`);
+    seen.add(low);
+    for (const field of ['tr', 'pron', 'ar', 'ku']) {
+      if (!word[field]) fail(`Letter ${letter.id}: example "${word.tr}" missing ${field}`);
+    }
+  }
+
+  // The extra examples must still BE the vocabulary entry they were taken from.
+  for (const word of more) {
+    const entry = vocabByTr.get(word.tr);
+    if (entry === undefined) {
+      fail(`Letter ${letter.id}: extra example "${word.tr}" is not in the vocabulary`);
+      continue;
+    }
+    if (entry === null) {
+      fail(`Letter ${letter.id}: extra example "${word.tr}" is a homonym and cannot carry one translation`);
+      continue;
+    }
+    for (const field of ['pron', 'ar', 'ku']) {
+      if (entry[field] !== word[field]) {
+        fail(`Letter ${letter.id}: "${word.tr}" ${field} disagrees with the vocabulary `
+          + `("${word[field]}" vs "${entry[field]}")`);
+      }
+    }
+  }
+}
+
 const vowelCount = ALPHABET.filter((l) => l.kind === 'vowel').length;
 if (vowelCount !== 8) fail(`Turkish has 8 vowels, content declares ${vowelCount}`);
 
@@ -871,6 +932,9 @@ const NUMERAL_CASES = [
 
 const stats = {
   Letters: ALPHABET.length,
+  'Letter examples': ALPHABET.reduce(
+    (s2, l) => s2 + [l.example, l.example2, ...(l.more ?? [])].filter(Boolean).length, 0,
+  ),
   Numbers: NUMBER_SECTIONS.reduce((s, x) => s + x.entries.length, 0),
   'Number sections': NUMBER_SECTIONS.length,
   Words: VOCABULARY.length,

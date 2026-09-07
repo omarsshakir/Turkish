@@ -71,6 +71,13 @@ export interface LetterEntry {
   example: Phrase;
   /** A second example word. */
   example2?: Phrase;
+  /**
+   * Thirteen further example words, ordered so the letter appears first at the
+   * start of a word, then in the middle, then at the end. Supplied by
+   * `content/a1/alphabet-examples.ts`; with `example` and `example2` this makes
+   * fifteen words per letter.
+   */
+  more?: Phrase[];
   /** True for letters that do not exist in the English alphabet. */
   special?: boolean;
 }

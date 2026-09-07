@@ -101,6 +101,31 @@ const CASES = [
     break: (s) => s.replace("'و (حرف العطف)', 'و',", "'', 'و',"),
     expect: /missing ar|missing/i,
   },
+  {
+    name: 'Letter example must contain its letter',
+    file: 'content/a1/alphabet.ts',
+    // kedi has no b in it, so it cannot be an example of B.
+    break: (s) => s.replace("example: p('baba', 'ba-BA'", "example: p('kedi', 'ke-Dİ'"),
+    expect: /does not contain/i,
+  },
+  {
+    name: 'Every letter keeps its thirteen extra examples',
+    file: 'content/a1/alphabet.ts',
+    break: (s) => s.replace(
+      'more: LETTER_EXAMPLES[letter.id],',
+      'more: LETTER_EXAMPLES[letter.id]?.slice(0, 12),',
+    ),
+    expect: /extra examples, expected 13/i,
+  },
+  {
+    name: 'Letter examples still match the vocabulary they came from',
+    file: 'content/a1/alphabet.ts',
+    break: (s) => s.replace(
+      'more: LETTER_EXAMPLES[letter.id],',
+      "more: LETTER_EXAMPLES[letter.id]?.map((x) => ({ ...x, pron: 'zzz' })),",
+    ),
+    expect: /disagrees with the vocabulary/i,
+  },
 ];
 
 let passed = 0;

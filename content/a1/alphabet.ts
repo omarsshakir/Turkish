@@ -1,5 +1,6 @@
 import type { LetterEntry } from '@/types/content';
 import { b, p } from '../shared/helpers';
+import { LETTER_EXAMPLES } from './alphabet-examples';
 
 /**
  * The Turkish alphabet - 29 letters, Latin script, adopted in 1928.
@@ -11,7 +12,7 @@ import { b, p } from '../shared/helpers';
  * it names the equivalent Arabic or Sorani letter wherever one exists,
  * because that is the fastest route to a correct Turkish sound.
  */
-export const ALPHABET: LetterEntry[] = [
+const LETTERS: LetterEntry[] = [
   {
     id: 'a',
     upper: 'A', lower: 'a', name: 'a', namePron: 'a', ipa: '/a/',
@@ -353,6 +354,18 @@ export const ALPHABET: LetterEntry[] = [
     example2: p('zeytin', 'zey-TİN', 'زيتون', 'زەیتوون'),
   },
 ];
+
+/**
+ * Two examples are enough to introduce a letter and nowhere near enough to
+ * practise it, so each letter carries thirteen more from `alphabet-examples`.
+ * They are merged here rather than at the call site: the detail panel, the
+ * search index and the validator then all see one complete letter, and a
+ * letter can never be shipped with its extra examples missing.
+ */
+export const ALPHABET: LetterEntry[] = LETTERS.map((letter) => ({
+  ...letter,
+  more: LETTER_EXAMPLES[letter.id],
+}));
 
 /** Letters that do not appear in the English alphabet - the ones students trip on. */
 export const SPECIAL_LETTERS = ALPHABET.filter((l) => l.special);

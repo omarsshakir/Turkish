@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Check, Sparkles, Type, Volume2, X } from 'lucide-react';
-import type { LetterEntry } from '@/types/content';
+import type { LetterEntry, Phrase } from '@/types/content';
 import { cx } from '@/lib/utils';
 import { useContent } from '@/state/ContentContext';
 import { useProgress } from '@/state/ProgressContext';
 import { useSettings } from '@/state/SettingsContext';
 import { Card, Chip, PageHeader } from '@/components/ui/Primitives';
 import { SpeakButton, SpeakPair } from '@/components/audio/SpeakButton';
-import { Translated } from '@/components/learn/Translation';
+import { PhraseRow, Translated } from '@/components/learn/Translation';
 import { audio } from '@/lib/audio';
 
 type Filter = 'all' | 'vowels' | 'consonants' | 'special';
@@ -265,7 +265,7 @@ function LetterDetail({ letter, onClose }: { letter: LetterEntry; onClose: () =>
 
           {/* Examples */}
           <section className="mt-5">
-            <SectionLabel>Örnek kelimeler</SectionLabel>
+            <SectionLabel>Örnek kelimeler · {2 + (letter.more?.length ?? 0)}</SectionLabel>
             <div className="space-y-3">
               {[letter.example, letter.example2].filter(Boolean).map((example) => example && (
                 <div
@@ -285,10 +285,71 @@ function LetterDetail({ letter, onClose }: { letter: LetterEntry; onClose: () =>
                 </div>
               ))}
             </div>
+
+            <MoreExamples letter={letter} />
           </section>
         </div>
       </aside>
     </>
+  );
+}
+
+/* Turkish lowercase: I becomes dotless ı and İ becomes i. The built-in
+   toLowerCase does neither, and getting it wrong here would file every word
+   containing I under the wrong letter. */
+const trLower = (s: string) => s.replace(/İ/g, 'i').replace(/I/g, 'ı').toLowerCase();
+
+type Slot = 'start' | 'middle' | 'end';
+
+const SLOTS: { id: Slot; tr: string; ar: string; ku: string }[] = [
+  { id: 'start', tr: 'Kelimenin başında', ar: 'في أول الكلمة', ku: 'لە سەرەتای وشەدا' },
+  { id: 'middle', tr: 'Kelimenin ortasında', ar: 'في وسط الكلمة', ku: 'لە ناوەڕاستی وشەدا' },
+  { id: 'end', tr: 'Kelimenin sonunda', ar: 'في آخر الكلمة', ku: 'لە کۆتایی وشەدا' },
+];
+
+/**
+ * The other thirteen example words, grouped by where the letter falls.
+ *
+ * Position is the thing a beginner actually gets wrong — a letter that is
+ * obvious at the start of a word disappears in the middle of one — so the
+ * grouping is the teaching, not decoration. It is computed from the word
+ * rather than stored, which means it cannot disagree with the spelling.
+ */
+function MoreExamples({ letter }: { letter: LetterEntry }) {
+  const { lang } = useSettings();
+  const more = letter.more ?? [];
+
+  const groups = useMemo(() => {
+    const ch = trLower(letter.lower);
+    const buckets: Record<Slot, Phrase[]> = { start: [], middle: [], end: [] };
+    for (const phrase of more) {
+      const word = trLower(phrase.tr);
+      const at = word.indexOf(ch);
+      buckets[at === 0 ? 'start' : at === word.length - 1 ? 'end' : 'middle'].push(phrase);
+    }
+    return SLOTS.map((slot) => ({ ...slot, items: buckets[slot.id] })).filter((g) => g.items.length);
+  }, [letter, more]);
+
+  if (groups.length === 0) return null;
+
+  return (
+    <div className="mt-4 space-y-4">
+      {groups.map((group) => (
+        <div key={group.id}>
+          <div className="mb-1 flex items-baseline gap-2">
+            <span className="font-display text-sm font-semibold text-secondary">{group.tr}</span>
+            <span className="font-arabic text-xs text-muted" dir="rtl" lang={lang === 'ar' ? 'ar' : 'ckb'}>
+              {lang === 'ar' ? group.ar : group.ku}
+            </span>
+          </div>
+          <ul className="rounded-2xl border border-ink-200 p-1 dark:border-ink-800">
+            {group.items.map((phrase) => (
+              <PhraseRow key={phrase.tr} phrase={phrase} size="sm" dense />
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
   );
 }
 
