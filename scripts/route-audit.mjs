@@ -21,6 +21,8 @@ const CHROME = findChrome();
 const ROUTES = [
   '/', '/alphabet', '/numbers', '/vocabulary', '/grammar', '/sentences',
   '/conversations', '/connections', '/arabic-origin', '/syllables',
+  '/themes', '/themes/calendar', '/themes/colors', '/themes/opposites',
+  '/themes/not-a-theme',
   '/levels', '/levels/a1', '/levels/a2', '/levels/b1', '/levels/b2',
   '/levels/c1', '/levels/c1plus',
   '/lesson/a1-vowel-harmony', '/lesson/conv-a1-directions',

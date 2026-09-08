@@ -126,6 +126,32 @@ const CASES = [
     ),
     expect: /disagrees with the vocabulary/i,
   },
+  {
+    name: 'Theme word reference must exist in the vocabulary',
+    file: 'content/themes.ts',
+    break: (s) => s.replace("{ word: 'kuzey' }", "{ word: 'kuzeyy' }"),
+    expect: /is not in the vocabulary/i,
+  },
+  {
+    name: 'Ambiguous theme reference must name its category',
+    file: 'content/themes.ts',
+    // yüz is both the number and the face; without the category it is a coin toss.
+    break: (s) => s.replace("{ word: 'yüz', category: 'body' }", "{ word: 'yüz' }"),
+    expect: /name the category to pick one/i,
+  },
+  {
+    name: 'Colour swatches must be real hex values',
+    file: 'content/themes.ts',
+    break: (s) => s.replace("swatch: '#DC2626'", "swatch: 'red'"),
+    expect: /malformed swatch/i,
+  },
+  {
+    name: 'Icon names must be in the CategoryIcon registry',
+    file: 'content/themes.ts',
+    // An unregistered name renders a generic book instead of failing.
+    break: (s) => s.replace("icon: 'Compass'", "icon: 'Kompas'"),
+    expect: /not in the CategoryIcon registry/i,
+  },
 ];
 
 let passed = 0;

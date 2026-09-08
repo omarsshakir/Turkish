@@ -41,7 +41,7 @@ unlinkSync(OUT);
 const {
   ALPHABET, NUMBER_SECTIONS, VOCABULARY, LESSONS, SENTENCE_PACKS,
   LEVELS, CATEGORIES, SYLLABLE_SECTIONS, ARABIC_CONNECTIONS, COLLOCATIONS, EXTRA_SENSES, VERB_PATTERNS,
-  ARABIC_ORIGIN,
+  ARABIC_ORIGIN, THEMES, THEME_SECTIONS,
 } = content;
 
 const LEVEL_IDS = new Set(LEVELS.map((l) => l.id));
@@ -136,6 +136,147 @@ if (vowelCount !== 8) fail(`Turkish has 8 vowels, content declares ${vowelCount}
 for (const banned of ['Q', 'W', 'X']) {
   if (ALPHABET.some((l) => l.upper === banned)) {
     fail(`Letter ${banned} does not exist in the Turkish alphabet`);
+  }
+}
+
+/* ---------------- thematic sections ---------------- */
+
+/*
+ * Themes reference vocabulary rather than restating it, which buys the
+ * guarantee that a theme cannot show a stale translation. The cost is that a
+ * misspelt reference resolves to nothing, and the resolver drops it silently —
+ * a word quietly missing from a section is exactly the kind of defect nobody
+ * notices. So every reference is checked here, where it is cheap to be strict.
+ */
+const wordIndex = new Map();
+for (const item of VOCABULARY) {
+  const list = wordIndex.get(item.tr);
+  if (list) list.push(item);
+  else wordIndex.set(item.tr, [item]);
+}
+
+/* A missing icon name falls back to a generic book with no error, so the
+   registry is read rather than trusted. */
+const iconSource = readFileSync('src/components/ui/CategoryIcon.tsx', 'utf8');
+const registryBody = iconSource.slice(
+  iconSource.indexOf('const REGISTRY = {'),
+  iconSource.indexOf('} as const;'),
+);
+const knownIcon = (name) => new RegExp(`\\b${name}\\b`).test(registryBody);
+
+for (const category of CATEGORIES) {
+  if (!knownIcon(category.icon)) {
+    fail(`Category ${category.id} uses icon "${category.icon}", which is not in the CategoryIcon registry`);
+  }
+}
+
+const themeIds = new Set();
+for (const theme of THEMES) {
+  if (themeIds.has(theme.id)) fail(`Duplicate theme id: ${theme.id}`);
+  themeIds.add(theme.id);
+  if (!theme.title) fail(`Theme ${theme.id} has no Turkish title`);
+  if (!theme.label?.ar || !theme.label?.ku) fail(`Theme ${theme.id} missing a bilingual label`);
+  if (!theme.intro?.ar || !theme.intro?.ku) fail(`Theme ${theme.id} missing a bilingual intro`);
+  if (!knownIcon(theme.icon)) {
+    fail(`Theme ${theme.id} uses icon "${theme.icon}", which is not in the CategoryIcon registry`);
+  }
+  if (!theme.groups?.length) fail(`Theme ${theme.id} has no groups`);
+
+  const groupIds = new Set();
+  const seenWords = new Set();
+  for (const group of theme.groups ?? []) {
+    if (groupIds.has(group.id)) fail(`Theme ${theme.id}: duplicate group id "${group.id}"`);
+    groupIds.add(group.id);
+    if (!group.title) fail(`Theme ${theme.id}/${group.id} has no Turkish title`);
+    if (!group.label?.ar || !group.label?.ku) {
+      fail(`Theme ${theme.id}/${group.id} missing a bilingual label`);
+    }
+    if (group.note && (!group.note.ar || !group.note.ku)) {
+      fail(`Theme ${theme.id}/${group.id} has a half-translated note`);
+    }
+    if (!group.words && !group.fromOpposites) {
+      fail(`Theme ${theme.id}/${group.id} declares neither words nor fromOpposites`);
+    }
+    if (group.words && group.fromOpposites) {
+      fail(`Theme ${theme.id}/${group.id} declares both words and fromOpposites`);
+    }
+
+    for (const entry of group.words ?? []) {
+      const matches = wordIndex.get(entry.word);
+      if (!matches) {
+        fail(`Theme ${theme.id}/${group.id}: "${entry.word}" is not in the vocabulary`);
+        continue;
+      }
+      if (matches.length > 1 && !entry.category) {
+        fail(`Theme ${theme.id}/${group.id}: "${entry.word}" has ${matches.length} entries `
+          + `(${matches.map((m) => m.category).join(', ')}) — name the category to pick one`);
+      }
+      if (entry.category && !matches.some((m) => m.category === entry.category)) {
+        fail(`Theme ${theme.id}/${group.id}: "${entry.word}" has no entry in category `
+          + `"${entry.category}"`);
+      }
+      if (seenWords.has(entry.word)) {
+        fail(`Theme ${theme.id}: "${entry.word}" appears in more than one group`);
+      }
+      seenWords.add(entry.word);
+      if (entry.swatch && !/^#[0-9A-Fa-f]{6}$/.test(entry.swatch)) {
+        fail(`Theme ${theme.id}/${group.id}: "${entry.word}" has a malformed swatch `
+          + `"${entry.swatch}"`);
+      }
+      if (entry.note && (!entry.note.ar || !entry.note.ku)) {
+        fail(`Theme ${theme.id}/${group.id}: "${entry.word}" has a half-translated note`);
+      }
+    }
+  }
+}
+
+/* The resolved output is what the app renders, so it is checked too: a group
+   that authored ten words and resolved nine is the failure this catches. */
+for (const theme of THEME_SECTIONS) {
+  const authored = THEMES.find((t) => t.id === theme.id);
+  for (const group of theme.groups) {
+    const source = authored?.groups.find((g) => g.id === group.id);
+    if (source?.words && source.words.length !== group.words.length) {
+      fail(`Theme ${theme.id}/${group.id}: ${source.words.length} words authored, `
+        + `${group.words.length} resolved`);
+    }
+    if (source?.fromOpposites && group.words.length === 0) {
+      fail(`Theme ${theme.id}/${group.id}: no antonym pairs found for `
+        + `${source.fromOpposites.join(', ')}`);
+    }
+    for (const entry of group.words) {
+      if (entry.opposite && !entry.oppositeItem) {
+        fail(`Theme ${theme.id}/${group.id}: "${entry.word}" names the opposite `
+          + `"${entry.opposite}", which is not in the vocabulary`);
+      }
+    }
+  }
+  if (theme.wordCount === 0) fail(`Theme ${theme.id} resolved to no words at all`);
+}
+
+/*
+ * Antonym hygiene.
+ *
+ * A warning rather than an error, deliberately. A dangling antonym still
+ * renders — the word detail prints `opposite` as text — so nothing is broken
+ * on screen. What it costs is the opposites section: a pair whose other half
+ * is not a vocabulary item cannot be shown as a pair, so it is dropped there.
+ * That is worth reporting on every run and not worth failing a build over,
+ * because several of these name a phrase rather than a word and the fix is an
+ * editorial decision, not a typo.
+ */
+for (const item of VOCABULARY) {
+  for (const word of item.opposite ?? []) {
+    const matches = wordIndex.get(word);
+    if (!matches) {
+      warn(`Antonym has no entry: ${item.tr} → ${word} (dropped from the opposites section)`);
+      continue;
+    }
+    if (matches.length > 1) continue;  // ambiguous target: cannot check the return trip
+    const back = matches[0].opposite ?? [];
+    if (back.length && !back.includes(item.tr)) {
+      warn(`Antonym is one-way: ${item.tr} → ${word}, but ${word} → ${back.join(', ')}`);
+    }
   }
 }
 

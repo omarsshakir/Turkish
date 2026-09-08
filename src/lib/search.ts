@@ -10,7 +10,7 @@ import type { LevelId } from '@/types/content';
 import { fold, foldArabic } from './utils';
 
 export type SearchKind =
-  | 'letter' | 'number' | 'word' | 'lesson' | 'sentence' | 'category';
+  | 'letter' | 'number' | 'word' | 'lesson' | 'sentence' | 'category' | 'theme';
 
 export interface SearchDoc {
   id: string;
@@ -145,4 +145,5 @@ export const SEARCH_KIND_LABEL: Record<SearchKind, { ar: string; ku: string; en:
   lesson: { ar: 'درس', ku: 'وانە', en: 'Lesson' },
   sentence: { ar: 'جملة', ku: 'ڕستە', en: 'Sentence' },
   category: { ar: 'تصنيف', ku: 'پۆل', en: 'Category' },
+  theme: { ar: 'باب', ku: 'بابەت', en: 'Theme' },
 };

@@ -26,6 +26,7 @@ const ROUTES = [
   '/', '/vocabulary', '/levels/a1', '/lesson/a1-vowel-harmony',
   '/lesson/conv-a1-directions', '/sentences', '/numbers', '/syllables',
   '/connections', '/arabic-origin', '/review', '/practice/vocabulary',
+  '/themes', '/themes/colors', '/themes/opposites', '/themes/body',
   '/search?q=kitap', '/settings',
 ];
 

@@ -4,7 +4,7 @@ import {
   BookOpen, Brain, Calculator, ClipboardList, Flame, GraduationCap, Hash,
   Headphones, Home, Layers, Lock, MessagesSquare, Mic, Repeat,
   Settings as SettingsIcon, Star, TrendingUp, Type, Waypoints, ArrowLeftRight,
-  AudioLines, Languages,
+  AudioLines, Languages, LayoutGrid,
 } from 'lucide-react';
 import { cx } from '@/lib/utils';
 import { useProgress } from '@/state/ProgressContext';
@@ -52,6 +52,7 @@ const GROUPS: NavGroup[] = [
       { to: '/syllables', label: 'Heceler', labelAr: 'المقاطع والنطق', labelKu: 'برگە و دەربڕین', icon: AudioLines },
       { to: '/numbers', label: 'Sayılar', labelAr: 'الأرقام', labelKu: 'ژمارەکان', icon: Hash },
       { to: '/vocabulary', label: 'Kelimeler', labelAr: 'المفردات', labelKu: 'وشەکان', icon: BookOpen },
+      { to: '/themes', label: 'Konu Başlıkları', labelAr: 'الأبواب الموضوعية', labelKu: 'بابەتەکان', icon: LayoutGrid },
       { to: '/grammar', label: 'Dilbilgisi', labelAr: 'القواعد', labelKu: 'ڕێزمان', icon: Layers },
       { to: '/sentences', label: 'Cümleler', labelAr: 'الجمل', labelKu: 'ڕستەکان', icon: Waypoints },
       { to: '/conversations', label: 'Konuşmalar', labelAr: 'المحادثات', labelKu: 'گفتوگۆکان', icon: MessagesSquare },

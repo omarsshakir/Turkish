@@ -6,9 +6,10 @@
  * anywhere in `src/` needs to change.
  */
 import type {
-  Lesson, LetterEntry, LevelId, NumberSection, SentencePack, SyllableSection,
-  VocabItem,
+  Lesson, LetterEntry, LevelId, NumberSection, PartOfSpeech, ResolvedTheme,
+  ResolvedThemeEntry, SentencePack, SyllableSection, VocabItem,
 } from '@/types/content';
+import { LEVEL_ORDER } from '@/types/content';
 
 import { LEVELS, LEVEL_BY_ID } from './levels';
 import { CATEGORIES, CATEGORY_BY_ID } from './categories';
@@ -39,6 +40,7 @@ import { EXTRA_SENSES } from './senses';
 import { VERB_PATTERNS } from './verb-patterns';
 import { applyKurdishPolicy } from './kurdish-review';
 import { ARABIC_ORIGIN } from './arabic/origin';
+import { THEMES } from './themes';
 
 /* -- A1 ---------------------------------------------------------------- */
 import { ALPHABET, MISSING_LETTERS, SPECIAL_LETTERS, VOWELS } from './a1/alphabet';
@@ -51,6 +53,7 @@ import { A1_VOCABULARY_MORE } from './a1/vocabulary-more';
 import { A1_VOCABULARY_CORE_VERBS } from './a1/vocabulary-core-verbs';
 import { A1_VOCABULARY_FUNCTION } from './a1/vocabulary-function';
 import { A1_VOCABULARY_EVERYDAY } from './a1/vocabulary-everyday';
+import { A1_VOCABULARY_DIRECTIONS } from './a1/vocabulary-directions';
 import { A1_VOCABULARY_FUNCTION_2 } from './a1/vocabulary-function-2';
 import { A1_VOCABULARY_FUNCTION_3 } from './a1/vocabulary-function-3';
 import { A1_GRAMMAR } from './a1/grammar';
@@ -145,6 +148,7 @@ const ALL_VOCABULARY: VocabItem[] = [
   ...A1_VOCABULARY_CORE_VERBS,
   ...A1_VOCABULARY_FUNCTION,
   ...A1_VOCABULARY_EVERYDAY,
+  ...A1_VOCABULARY_DIRECTIONS,
   ...A1_VOCABULARY_FUNCTION_2,
   ...A1_VOCABULARY_FUNCTION_3,
   ...A2_VOCABULARY,
@@ -315,6 +319,106 @@ export const VOCAB_BY_ID: Record<string, VocabItem> = Object.fromEntries(
 export const LESSON_BY_ID: Record<string, Lesson> = Object.fromEntries(
   LESSONS.map((l) => [l.id, l]),
 );
+
+/* ------------------------------------------------------------------ */
+/* Thematic sections                                                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Turns the authored themes into the shape the app renders.
+ *
+ * `content/themes.ts` names words; this attaches them. Nothing is copied, so a
+ * word shown in a theme IS the vocabulary item — same translation, same
+ * example, same SRS card, same favourite. Fixing a translation in one place
+ * fixes it in the theme too, which is the entire reason themes reference
+ * rather than restate.
+ *
+ * A reference that does not resolve is dropped here and reported by the
+ * validator. Silently rendering an empty row would hide the mistake; failing
+ * the build on it would make every content edit a minefield. The validator is
+ * the right place to be strict, and it is.
+ */
+const VOCAB_BY_WORD = new Map<string, VocabItem[]>();
+for (const item of VOCABULARY) {
+  const list = VOCAB_BY_WORD.get(item.tr);
+  if (list) list.push(item);
+  else VOCAB_BY_WORD.set(item.tr, [item]);
+}
+
+/**
+ * Finds the one vocabulary item a theme entry means.
+ *
+ * Two Turkish words in the curriculum have two entries — `yüz` (a face and a
+ * hundred) and `yemek` (food and to eat) — so a bare spelling is not always
+ * enough. A theme entry disambiguates with `category`, which is stable;
+ * the generated ids are not, because they carry a sequence number that shifts
+ * whenever content is added earlier in the registry.
+ */
+function findWord(word: string, category?: string): VocabItem | undefined {
+  const matches = VOCAB_BY_WORD.get(word);
+  if (!matches) return undefined;
+  if (matches.length === 1) return category ? matches.find((m) => m.category === category) : matches[0];
+  return category ? matches.find((m) => m.category === category) : undefined;
+}
+
+/**
+ * Every antonym pair in the curriculum whose word is one of `parts`.
+ *
+ * `seen` is owned by the caller and shared across all the groups of one
+ * section, because a pair can straddle two parts of speech: `taksit` is a noun
+ * and its opposite `peşin` is an adverb, and each declares the other. Without a
+ * shared set the same pair renders twice in one section, once under each
+ * heading. Sharing it means the first group to claim a pair keeps it.
+ */
+function oppositePairs(parts: PartOfSpeech[], seen: Set<string>): ResolvedThemeEntry[] {
+  const wanted = new Set(parts);
+  const out: ResolvedThemeEntry[] = [];
+  for (const item of VOCABULARY) {
+    if (!wanted.has(item.pos)) continue;
+    for (const word of item.opposite ?? []) {
+      const other = findWord(word);
+      if (!other) continue;
+      // A pair is one row, not two: `ağır → hafif` and `hafif → ağır` are the
+      // same fact stated from both ends.
+      const key = [item.tr, other.tr].sort().join('\u0000');
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ word: item.tr, opposite: other.tr, item, oppositeItem: other });
+    }
+  }
+  return out.sort((a, b) => LEVEL_ORDER.indexOf(a.item.level) - LEVEL_ORDER.indexOf(b.item.level));
+}
+
+export const THEME_SECTIONS: ResolvedTheme[] = THEMES.map((theme) => {
+  const claimed = new Set<string>();
+  const groups = theme.groups.map((group) => {
+    const words: ResolvedThemeEntry[] = group.fromOpposites
+      ? oppositePairs(group.fromOpposites, claimed)
+      : (group.words ?? []).flatMap((entry) => {
+        const item = findWord(entry.word, entry.category);
+        if (!item) return [];
+        const oppositeItem = entry.opposite ? findWord(entry.opposite) : undefined;
+        return [{ ...entry, item, oppositeItem }];
+      });
+    return {
+      id: group.id, title: group.title, label: group.label, note: group.note, words,
+    };
+  });
+  return {
+    ...theme,
+    groups,
+    wordCount: groups.reduce(
+      (sum, g) => sum + g.words.reduce((n, w) => n + (w.oppositeItem ? 2 : 1), 0),
+      0,
+    ),
+  };
+});
+
+export const THEME_BY_ID: Record<string, ResolvedTheme> = Object.fromEntries(
+  THEME_SECTIONS.map((t) => [t.id, t]),
+);
+
+export { THEMES };
 
 export const LETTER_BY_ID: Record<string, LetterEntry> = Object.fromEntries(
   ALPHABET.map((l) => [l.id, l]),

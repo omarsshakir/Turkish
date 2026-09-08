@@ -7,6 +7,7 @@ import type {
 } from '@/types/content';
 import {
   ALPHABET, CATEGORIES, CONTENT_STATS, LESSONS, LEVELS, NUMBER_SECTIONS,
+  THEME_SECTIONS,
   SENTENCE_PACKS, VOCABULARY, lessonsByLevel, sentencesByLevel, vocabByLevel,
 } from '@content/index';
 import { STORAGE_KEYS, readStore, writeStore } from '@/lib/storage';
@@ -130,6 +131,23 @@ export function ContentProvider({ children }: { children: ReactNode }) {
         level: 'a1',
         href: `/alphabet?letter=${letter.id}`,
         keywords: `${letter.name} ${letter.example.tr} ${letter.ipa} harf alfabe`,
+      });
+    }
+
+    /* A theme is a destination, not a word: the words inside it are already
+       indexed individually, so indexing the section too would double every
+       hit. What earns a row is the section itself and the headings a student
+       might type — "renkler", "aile", "zıt". */
+    for (const theme of THEME_SECTIONS) {
+      docs.push({
+        id: `theme-${theme.id}`,
+        kind: 'theme',
+        tr: theme.title,
+        ar: theme.label.ar,
+        ku: theme.label.ku,
+        level: 'a1',
+        href: `/themes/${theme.id}`,
+        keywords: `konu ${theme.groups.map((g) => g.title).join(' ')}`,
       });
     }
 

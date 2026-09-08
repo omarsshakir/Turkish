@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   AlertTriangle, ArrowLeftRight, ArrowRight, Brain, BookOpen, CheckCircle2, Languages,
-  Clock, Flame, GraduationCap, Hash, Headphones, Layers, Lock, Mic, Play,
+  Clock, Flame, GraduationCap, Hash, Headphones, Layers, LayoutGrid, Lock, Mic, Play,
   PlayCircle, Plus, Repeat, Target, Trophy, Type, Waypoints,
 } from 'lucide-react';
 import type { LevelId, Lesson } from '@/types/content';
@@ -643,6 +643,10 @@ export default function Dashboard() {
           <QuickCard
             to="/vocabulary" icon={<BookOpen size={18} />} title="Kelimeler"
             sub={lang === 'ar' ? `${stats.words} كلمة` : `${stats.words} وشە`} lang={lang}
+          />
+          <QuickCard
+            to="/themes" icon={<LayoutGrid size={18} />} title="Konu Başlıkları"
+            sub={lang === 'ar' ? 'أيام، ألوان، جسم، عائلة…' : 'ڕۆژ، ڕەنگ، لەش، خێزان…'} lang={lang}
           />
           <QuickCard
             to="/grammar" icon={<Layers size={18} />} title="Dilbilgisi"

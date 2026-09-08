@@ -20,6 +20,7 @@ export const CATEGORIES: VocabCategory[] = [
   { id: 'body', label: 'Body', tr: 'Vücut', labelI18n: b('الجسم', 'لەش'), icon: 'PersonStanding', level: 'a1' },
   { id: 'animals', label: 'Animals', tr: 'Hayvanlar', labelI18n: b('الحيوانات', 'ئاژەڵەکان'), icon: 'Cat', level: 'a1' },
   { id: 'clothing', label: 'Clothing', tr: 'Giysiler', labelI18n: b('الملابس', 'جلوبەرگ'), icon: 'Shirt', level: 'a1' },
+  { id: 'directions', label: 'Directions', tr: 'Yönler', labelI18n: b('الاتجاهات', 'ئاراستەکان'), icon: 'Compass', level: 'a1' },
   { id: 'places', label: 'Places', tr: 'Yerler', labelI18n: b('الأماكن', 'شوێنەکان'), icon: 'MapPin', level: 'a1' },
   { id: 'verbs', label: 'Common verbs', tr: 'Yaygın fiiller', labelI18n: b('الأفعال الشائعة', 'کارە باوەکان'), icon: 'Zap', level: 'a1' },
   { id: 'adjectives', label: 'Common adjectives', tr: 'Yaygın sıfatlar', labelI18n: b('الصفات الشائعة', 'ئاوەڵناوە باوەکان'), icon: 'Sparkles', level: 'a1' },

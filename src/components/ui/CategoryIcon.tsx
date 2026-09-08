@@ -3,7 +3,7 @@ import {
   CupSoda, Gem, GraduationCap, Hand, Hash, HeartPulse, Home, Laptop, MapPin,
   MessageSquare, Palette, PersonStanding, Plane, Quote, School, Shirt,
   ShoppingCart, Smile, Sparkles, Trees, User, Users, UtensilsCrossed, Zap,
-  CloudSun, Bus,
+  CloudSun, Bus, Compass, Apple, ArrowLeftRight,
   Newspaper, Link2, Blocks, Coffee, TrendingUp, Landmark, FlaskConical,
   Stamp, Scale, Feather, Globe, HeartHandshake, Infinity as InfinityIcon, Puzzle,
 } from 'lucide-react';
@@ -18,7 +18,7 @@ import {
  */
 const REGISTRY = {
   BadgeCheck, BookOpen, Box, Briefcase, Bus, Calendar, CalendarDays, Cat, Clock,
-  CloudSun, CupSoda, Gem, GraduationCap, Hand, Hash, HeartPulse, Home, Laptop,
+  CloudSun, Compass, Apple, ArrowLeftRight, CupSoda, Gem, GraduationCap, Hand, Hash, HeartPulse, Home, Laptop,
   MapPin, MessageSquare, Palette, PersonStanding, Plane, Quote, School, Shirt,
   ShoppingCart, Smile, Sparkles, Trees, User, Users, UtensilsCrossed, Zap,
   Newspaper, Link2, Blocks, Coffee, TrendingUp, Landmark, FlaskConical,

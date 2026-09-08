@@ -13,6 +13,8 @@ import Sentences from '@/pages/Sentences';
 import Conversations from '@/pages/Conversations';
 import Connections from '@/pages/Connections';
 import Syllables from '@/pages/Syllables';
+import Themes from '@/pages/Themes';
+import ThemeDetail from '@/pages/ThemeDetail';
 import ConnectionPractice from '@/pages/ConnectionPractice';
 import NumberPractice from '@/pages/NumberPractice';
 import ArabicOrigin from '@/pages/ArabicOrigin';
@@ -49,6 +51,8 @@ export default function App() {
               <Route path="connections" element={<Connections />} />
               <Route path="arabic-origin" element={<ArabicOrigin />} />
               <Route path="syllables" element={<Syllables />} />
+              <Route path="themes" element={<Themes />} />
+              <Route path="themes/:themeId" element={<ThemeDetail />} />
               <Route path="lesson/:lessonId" element={<Lesson />} />
 
               <Route path="levels" element={<Levels />} />

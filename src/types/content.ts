@@ -397,6 +397,81 @@ export interface SyllableSection {
 }
 
 /* ------------------------------------------------------------------ */
+/* Thematic sections                                                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * One word inside a theme, named rather than copied.
+ *
+ * A theme is a view over vocabulary that already exists, so an entry carries
+ * a reference and not a translation. Nothing here can drift away from the
+ * word list the student studies elsewhere, because there is nothing here to
+ * drift - the resolver in `content/index.ts` attaches the real item.
+ */
+export interface ThemeEntry {
+  /** Turkish word; must resolve to exactly one vocabulary item. */
+  word: string;
+  /**
+   * Disambiguates a Turkish spelling that has two entries. `yuz` is both the
+   * number and the face; naming the category picks one. Categories are stable,
+   * unlike the generated ids, which shift whenever content is added earlier.
+   */
+  category?: string;
+  /** The paired antonym, for a group of opposites. Also a Turkish word. */
+  opposite?: string;
+  /** A CSS colour, for the colour theme's swatches. */
+  swatch?: string;
+  /** A point worth making about this word here specifically. */
+  note?: Bilingual;
+}
+
+export interface ThemeGroup {
+  id: string;
+  /** Turkish heading. */
+  title: string;
+  /** The same heading for the student. */
+  label: Bilingual;
+  note?: Bilingual;
+  /** An explicit list of words. */
+  words?: ThemeEntry[];
+  /**
+   * Or: fill this group from every vocabulary word of these parts of speech
+   * that declares an antonym. Derived rather than authored, so the opposites
+   * section cannot fall out of step with the `opposite` field it displays.
+   */
+  fromOpposites?: PartOfSpeech[];
+}
+
+export interface ThemeSection {
+  id: string;
+  /** Turkish title. */
+  title: string;
+  label: Bilingual;
+  /** lucide-react icon name, resolved at render time. */
+  icon: string;
+  /** Why this theme earns a section of its own, for an Arabic or Kurdish speaker. */
+  intro: Bilingual;
+  groups: ThemeGroup[];
+}
+
+/** A theme entry with its vocabulary item attached. */
+export interface ResolvedThemeEntry extends ThemeEntry {
+  item: VocabItem;
+  /** Present when `opposite` is set. */
+  oppositeItem?: VocabItem;
+}
+
+export interface ResolvedThemeGroup extends Omit<ThemeGroup, 'words' | 'fromOpposites'> {
+  words: ResolvedThemeEntry[];
+}
+
+export interface ResolvedTheme extends Omit<ThemeSection, 'groups'> {
+  groups: ResolvedThemeGroup[];
+  /** Total words in the theme, counting both halves of an opposite pair. */
+  wordCount: number;
+}
+
+/* ------------------------------------------------------------------ */
 /* Lessons - grammar, sentences, conversation, pronunciation           */
 /* ------------------------------------------------------------------ */
 
